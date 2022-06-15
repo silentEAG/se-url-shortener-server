@@ -9,12 +9,12 @@ use serde::Deserialize;
 use utils::short_url;
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
+
     let app = Router::new()
         .route("/", get(root))
         .route("/se", post(create_url_short_test));
     info!("Service start...");
-    // run it with hyper on localhost:3001
+
     axum::Server::bind(&"0.0.0.0:3001".parse().unwrap())
         .serve(app.into_make_service())
         .await
