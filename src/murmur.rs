@@ -10,6 +10,7 @@ fn _rotl64(x: u64, r: i8) -> u64 {
     (x << r) | (x >> (64 - r))
 }
 
+#[inline]
 fn fmix32(h: u32) -> u32 {
     let mut res = h ^ (h >> 16);
     res = res.wrapping_mul(0x85ebca6b);
@@ -19,6 +20,7 @@ fn fmix32(h: u32) -> u32 {
     res
 }
 
+#[inline]
 fn _fmix64(h: u64) -> u64 {
     let mut res = h ^ (h >> 33);
     res *= 0xff51afd7ed558ccd_u64;
