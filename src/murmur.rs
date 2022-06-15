@@ -83,6 +83,15 @@ pub fn murmur_hash3_x86_32(key: *const u8, len: usize, seed: u32) -> u32 {
     h1
 }
 
+// rewrite from https://github.com/PeterScott/murmur3/blob/master/murmur3.c
+pub fn _murmur_hash3_x64_128() {
+    unimplemented!()
+}
+
+pub fn _murmur_hash3_x86_128() {
+    unimplemented!()
+}
+
 #[test]
 fn test_for_murmur_hash3_x86_32() {
 
