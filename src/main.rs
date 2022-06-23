@@ -24,12 +24,14 @@ async fn main() {
 
     get_tracing();
 
+    // loading config
     let setted_config = load_config();
     let sql_config = match setted_config.sql_config {
         Some(config) => config,
         None => SqlConfig::default_config()
     };
 
+    // connect to SQL pool
     let pool: Pool<MySql> = MySqlPoolOptions::new()
     .max_connections(match sql_config.max_connections {
         Some(value) => value,
@@ -37,14 +39,16 @@ async fn main() {
     })
     .connect("mysql://root:root@localhost/Test").await.unwrap();
 
+    // init server
     let app = app::app()
                     .layer(Extension(AppState {
                         pool,
-                        app_config: setted_config.app_config.unwrap(),
+                        shorter_url_domain: setted_config.app_config.unwrap().shorter_url_domain.unwrap(),
                     }));
 
     tracing::info!("Server starts...");
 
+    // start server
     axum::Server::bind(&"0.0.0.0:3001".parse().unwrap())
         .serve(app.into_make_service())
         .await

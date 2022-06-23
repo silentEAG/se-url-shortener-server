@@ -1,6 +1,5 @@
 use std::{fs::{File}, io::Read};
-use sqlx::mysql::MySqlPoolOptions;
-use futures::executor::block_on;
+
 
 use crate::model::conf::Config;
 
@@ -23,16 +22,22 @@ pub fn load_config() -> Config {
     config
 }
 
-#[test]
-fn test_load_config() {
-    let setted_config = load_config();
-    println!("{:?}", setted_config);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::mysql::MySqlPoolOptions;
+
+    #[test]
+    fn test_load_config() {
+        let setted_config = load_config();
+        println!("{:?}", setted_config);
+    }
+    
+    #[tokio::test]
+    async fn connect_to_sql() {
+        let _pool = MySqlPoolOptions::new()
+        .max_connections(5)
+        .connect("mysql://root:root@localhost/Test").await.unwrap();
+    }
 }
 
-#[tokio::test]
-async fn connect_to_sql() {
-    let pool = MySqlPoolOptions::new()
-    .max_connections(5)
-    .connect("mysql://root:root@localhost/Test").await.unwrap();
-
-}

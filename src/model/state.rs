@@ -1,8 +1,9 @@
 use sqlx::MySql;
-use super::conf::AppConfig;
+
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: sqlx::Pool<MySql>,
-    pub app_config: AppConfig
+    pub shorter_url_domain: String,
+    // pub app_config: AppConfig
 }
