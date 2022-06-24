@@ -1,17 +1,23 @@
+use std::collections::HashMap;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 
 use axum::Json;
 use axum::Extension;
+use axum::http::HeaderMap;
+use axum::http::StatusCode;
 use sqlx::Row;
 
-use crate::{model::req_res_struct::UrlData, utils::short_url};
+use crate::app_type::HandlerJsonResult;
+use crate::error::AppError;
+use crate::model::req_res_struct::ResUrlData;
+use crate::{model::req_res_struct::ReqUrlData, utils::short_url};
 use crate::model::state::AppState;
 
-
+#[axum_macros::debug_handler]
 pub async fn url_shorter_handler(
     Extension(state): Extension<AppState>,
-    Json(frm): Json<UrlData>) -> String {
+    Json(frm): Json<ReqUrlData>) -> Json<HashMap<String, String>> {
     let original_url = frm.original_url.as_str();
     let shorter_url = short_url(original_url);
     println!("{:?}", shorter_url);
@@ -34,7 +40,7 @@ pub async fn url_shorter_handler(
     else {
         let long_url = conn.unwrap().try_get::<String, _>(1).unwrap();
         if original_url != long_url {
-            return "Unimplemented!".to_string();
+            panic!();
         }
     }
     // println!("{:?}", conn.try_get::<String, _>(1));
@@ -44,5 +50,7 @@ pub async fn url_shorter_handler(
         result_url.push('/');
     }
     result_url.push_str(&shorter_url);
-    result_url
+    let mut res = HashMap::new();
+    res.insert("shorten_url".to_string(), result_url);
+    Json::from(res)
 }

@@ -15,3 +15,4 @@ tracing-subscriber = "0.2"
 toml = "0.5.9"
 sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls" , "mysql" ] }
 futures = "*"
+axum-macros = "0.2.2"
