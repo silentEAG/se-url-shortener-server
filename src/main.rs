@@ -5,6 +5,8 @@ mod utils;
 mod routers;
 mod model;
 mod config;
+mod error;
+mod app_type;
 
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, fmt, util::SubscriberInitExt};
 use sqlx::{mysql::MySqlPoolOptions, Pool, MySql};

@@ -5,7 +5,7 @@ use axum::Json;
 use axum::Extension;
 use sqlx::Row;
 
-use crate::{model::data::UrlData, utils::short_url};
+use crate::{model::req_res_struct::UrlData, utils::short_url};
 use crate::model::state::AppState;
 
 
