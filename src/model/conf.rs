@@ -9,12 +9,14 @@ pub struct Config {
 pub struct SqlConfig {
     pub host: Option<String>,
     pub port: Option<String>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub database: Option<String>,
     pub max_connections: Option<u32>
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct AppConfig {
-    pub host: Option<String>,
     pub port: Option<String>,
     pub shorter_url_domain: Option<String>
 }
@@ -22,9 +24,12 @@ pub struct AppConfig {
 impl SqlConfig {
     pub fn default_config() -> Self {
         SqlConfig { 
-            host: Some("127.0.0.1".to_string()), 
+            host: Some("localhost".to_string()), 
             port: Some("3306".to_string()),
-            max_connections: Some(5)
+            username: Some("root".to_string()), 
+            password: Some("root".to_string()),
+            database: Some("Test".to_string()),
+            max_connections: Some(10)
         }
     }
 }

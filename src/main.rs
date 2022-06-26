@@ -21,6 +21,16 @@ fn get_tracing() {
     .init();
 }
 
+fn generate_sql_url(sql_config: &SqlConfig) -> String {
+    let host = sql_config.host.as_ref().unwrap();
+    let port = sql_config.port.as_ref().unwrap();
+    let username = sql_config.username.as_ref().unwrap();
+    let password = sql_config.password.as_ref().unwrap();
+    let database = sql_config.database.as_ref().unwrap();
+    let sql_url = format!("mysql://{}:{}@{}:{}/{}", username, password, host, port, database);
+    sql_url
+}
+
 #[tokio::main]  
 async fn main() {
 
@@ -37,21 +47,26 @@ async fn main() {
     let pool: Pool<MySql> = MySqlPoolOptions::new()
     .max_connections(match sql_config.max_connections {
         Some(value) => value,
-        None => 5
+        None => 10
     })
-    .connect("mysql://root:root@localhost/Test").await.unwrap();
+    .connect(generate_sql_url(&sql_config).as_str()).await.unwrap();
 
     // init server
     let app = app::app()
                     .layer(Extension(AppState {
                         pool,
-                        shorter_url_domain: setted_config.app_config.unwrap().shorter_url_domain.unwrap(),
+                        shorter_url_domain: setted_config.app_config.as_ref().unwrap().shorter_url_domain.as_ref().unwrap().to_string(),
                     }));
 
     tracing::info!("Server starts...");
 
+    let port = setted_config.app_config.as_ref().unwrap().port.as_ref().unwrap();
+
+    let mut addr = String::from("0.0.0.0:");
+    addr.push_str(&port);
+
     // start server
-    axum::Server::bind(&"0.0.0.0:3001".parse().unwrap())
+    axum::Server::bind(&addr.parse().unwrap())
         .serve(app.into_make_service())
         .await
         .expect("Server failed!");

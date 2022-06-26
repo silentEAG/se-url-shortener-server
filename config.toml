@@ -1,9 +1,12 @@
 [sql_config]
 host = "127.0.0.1"
 port = "3306"
+username = "root"
+password = "root"
+database = "Test"
+max_connections = 10
 
 [app_config]
-host = "0.0.0.0"
 port = "3001"
 # shorter_url_domain = "https://u.silente.dev"
 shorter_url_domain = "http://127.0.0.1:3001"

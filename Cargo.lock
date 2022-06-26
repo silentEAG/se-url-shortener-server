@@ -1111,6 +1111,7 @@ dependencies = [
  "axum",
  "axum-macros",
  "futures",
+ "lazy_static",
  "log",
  "serde",
  "sqlx",
