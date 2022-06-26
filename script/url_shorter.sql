@@ -1,19 +1,3 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : Test
- Source Server Type    : MySQL
- Source Server Version : 50726
- Source Host           : localhost:3306
- Source Schema         : url_shorter
-
- Target Server Type    : MySQL
- Target Server Version : 50726
- File Encoding         : 65001
-
- Date: 26/06/2022 21:34:34
-*/
-
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -21,9 +5,6 @@ DROP DATABASE IF EXISTS `url_shorter`;
 CREATE DATABASE `url_shorter`;
 USE `url_shorter`;
 
--- ----------------------------
--- Table structure for url_info
--- ----------------------------
 DROP TABLE IF EXISTS `url_info`;
 CREATE TABLE `url_info`  (
   `id` int(32) NOT NULL AUTO_INCREMENT,
