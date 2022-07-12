@@ -1,4 +1,6 @@
 
+use std::time::UNIX_EPOCH;
+use std::time::SystemTime;
 use axum::http::{HeaderMap, header};
 
 use crate::murmur::murmur_hash3_x86_32;
@@ -33,6 +35,9 @@ pub fn get_cors_header(mut headers: HeaderMap) -> HeaderMap {
     headers
 }
 
+pub fn get_timestamp() -> String {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs().to_string()
+}
 
 #[cfg(test)]
 mod tests {

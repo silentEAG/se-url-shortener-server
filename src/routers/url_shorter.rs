@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
 
 use axum::Json;
 use axum::Extension;
@@ -12,6 +10,7 @@ use sqlx::Row;
 use crate::app_type::{JsonResponse, Result};
 use crate::error::method::*;
 use crate::utils::get_cors_header;
+use crate::utils::get_timestamp;
 use crate::{model::req_struct::ReqUrlData, utils::short_url};
 use crate::model::state::AppState;
 use crate::app_type::HandlerJsonResult;
@@ -23,26 +22,21 @@ enum ExistedState {
     Error
 }
 
-async fn is_Existed(state: &AppState, mur_code: &str, long_url: &str) -> ExistedState {
+async fn is_existed(state: &AppState, mur_code: &str, long_url: &str) -> ExistedState {
     let sql = "SELECT id, long_url FROM url_info WHERE is_deleted=false AND mur_hash_code=$1";
     let res = sqlx::query(sql)
     .bind(mur_code)
     .fetch_one(&state.pool).await;
     match res {
-        Err(sqlx::Error::RowNotFound) => ExistedState::NotExisted,
-        Err(e) => {
-            debug!("{}", e);
-            ExistedState::Error
-        }
         Ok(row) => {
             let db_url = row.get::<String, _>(1);
-            if db_url == long_url {
-                ExistedState::ExistedSame
-            }
-            else {
-                ExistedState::ExistedNotSame
+            match db_url == long_url {
+                true => ExistedState::ExistedSame,
+                false => ExistedState::ExistedNotSame
             }
         }
+        Err(sqlx::Error::RowNotFound) => ExistedState::NotExisted,
+        Err(e) => { debug!("{}", e); ExistedState::Error }
     }
 }
 
@@ -78,34 +72,20 @@ pub async fn url_shorter_handler(
     }
     let mur_code = short_url(original_url);
     
-    match is_Existed(&state, &mur_code, &original_url).await {
+    match is_existed(&state, &mur_code, &original_url).await {
         ExistedState::NotExisted => {
-            let time = SystemTime::now().duration_since(UNIX_EPOCH)
-            .unwrap().as_secs().to_string();
-            let sql = "INSERT INTO url_info(
+            let time: String = get_timestamp();
+            let sql: &str = "INSERT INTO url_info(
                 long_url, mur_hash_code, insert_at, latest_visit_at, visit_count, is_deleted)
                 VALUES($1, $2, $3, $4, 0, false)";
-                let res = sqlx::query(&sql)
-                .bind(&original_url)
-                .bind(&mur_code) 
-                .bind(&time)
-                .bind(&time)
-                .execute(&state.pool).await;
-            if let Ok(_) = res {
-                let result_url = generate_reslut_url(state.shorter_url_domain.clone(), mur_code);
-                return generate_reslut(result_url);
-            }
-            else {
-                if let Err(e) = res {
-                    debug!("{}", e);
-                }
-                return Err(er_insert())
-            }
+            sqlx::query(&sql)
+            .bind(&original_url)
+            .bind(&mur_code) 
+            .bind(&time)
+            .bind(&time)
+            .execute(&state.pool).await?;
         },
-        ExistedState::ExistedSame => {
-            let result_url = generate_reslut_url(state.shorter_url_domain.clone(), mur_code);
-            return generate_reslut(result_url);
-        }
+        ExistedState::ExistedSame => {}
         ExistedState::ExistedNotSame => {
             return Err(er_unknown());
         },
@@ -113,4 +93,6 @@ pub async fn url_shorter_handler(
             return Err(er_unknown());
         }
     }
+    let result_url = generate_reslut_url(state.shorter_url_domain.clone(), mur_code);
+    return generate_reslut(result_url);
 }
