@@ -21,6 +21,9 @@ pub struct AppError {
 }
 
 impl AppError {
+    // pub fn err_type(&self) -> AppErrorType {
+    //     self.error_type
+    // }
     pub fn new (message: String) -> Self {
         Self {
             message,
@@ -28,9 +31,22 @@ impl AppError {
             error_code: 1000
         }
     }
+    pub fn db_error(err: impl ToString) -> Self {
+        Self {
+            message: err.to_string(),
+            error_type: AppErrorType::DBError,
+            error_code: 1001
+        }
+    }
 }
 
 impl std::error::Error for AppError {}
+
+impl From<sqlx::Error> for AppError {
+    fn from(err: sqlx::Error) -> Self {
+        Self::db_error(err)
+    }
+}
 
 impl std::fmt::Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

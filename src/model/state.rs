@@ -1,9 +1,8 @@
-use sqlx::MySql;
+use sqlx::{Pool, Postgres};
 
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pool: sqlx::Pool<MySql>,
+    pub pool: Pool<Postgres>,
     pub shorter_url_domain: String,
-    // pub app_config: AppConfig
 }

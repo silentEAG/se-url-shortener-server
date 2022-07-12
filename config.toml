@@ -1,9 +1,9 @@
 [sql_config]
 host = "127.0.0.1"
-port = "3306"
-username = "root"
+port = "5432"
+username = "postgres"
 password = "root"
-database = "Test"
+database = "url_shorter"
 max_connections = 10
 
 [app_config]

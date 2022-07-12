@@ -1,4 +1,6 @@
 
+use axum::http::{HeaderMap, header};
+
 use crate::murmur::murmur_hash3_x86_32;
 
 
@@ -20,6 +22,15 @@ pub fn u32_to_b62(hash: u32) -> String {
 pub fn short_url(url: &str) -> String {
     let hash = murmur_hash3_x86_32(url.as_ptr(), url.len(), 1234);
     u32_to_b62(hash)
+}
+
+pub fn get_cors_header(mut headers: HeaderMap) -> HeaderMap {
+    headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
+    headers.insert(header::ACCESS_CONTROL_ALLOW_METHODS, "*".parse().unwrap());
+    headers.insert(header::ACCESS_CONTROL_MAX_AGE, "3600".parse().unwrap());
+    headers.insert(header::ACCESS_CONTROL_ALLOW_HEADERS, "*".parse().unwrap());
+    headers.insert(header::ACCESS_CONTROL_ALLOW_CREDENTIALS, "true".parse().unwrap());
+    headers
 }
 
 

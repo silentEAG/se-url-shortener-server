@@ -9,10 +9,12 @@ mod error;
 mod app_type;
 
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, fmt, util::SubscriberInitExt};
-use sqlx::{mysql::MySqlPoolOptions, Pool, MySql};
 use axum::{Extension};
+use dotenv::dotenv;
+use sqlx::postgres::PgPoolOptions;
 
-use crate::{config::load_config, model::{conf::SqlConfig, state::AppState}};
+use crate::model::state::AppState;
+use crate::config::Config;
 
 #[inline]
 fn get_tracing() {
@@ -21,46 +23,37 @@ fn get_tracing() {
     .init();
 }
 
-fn generate_sql_url(sql_config: &SqlConfig) -> String {
-    let host = sql_config.host.as_ref().unwrap();
-    let port = sql_config.port.as_ref().unwrap();
-    let username = sql_config.username.as_ref().unwrap();
-    let password = sql_config.password.as_ref().unwrap();
-    let database = sql_config.database.as_ref().unwrap();
-    let sql_url = format!("mysql://{}:{}@{}:{}/{}", username, password, host, port, database);
-    sql_url
+#[inline]
+fn get_pg_url(conf: &Config) -> String {
+    let pg_url = format!("postgres://{}:{}@{}/{}", conf.pg.user, conf.pg.password, conf.pg.host, conf.pg.dbname);
+    println!("{}", pg_url);
+    pg_url
 }
 
 #[tokio::main]  
-async fn main() {
+async fn main(){
 
     get_tracing();
 
-    // loading config
-    let setted_config = load_config();
-    let sql_config = match setted_config.sql_config {
-        Some(config) => config,
-        None => SqlConfig::default_config()
-    };
+    dotenv().ok();
 
-    // connect to SQL pool
-    let pool: Pool<MySql> = MySqlPoolOptions::new()
-    .max_connections(match sql_config.max_connections {
-        Some(value) => value,
-        None => 10
-    })
-    .connect(generate_sql_url(&sql_config).as_str()).await.unwrap();
+    // loading config
+    let conf: Config = Config::from_env().expect("初始化配置失败");
+    let pg_url = get_pg_url(&conf);
+    let pool = PgPoolOptions::new()
+    .max_connections(conf.pg.max_size.parse::<u32>().unwrap())
+    .connect(&pg_url).await.unwrap();
 
     // init server
     let app = app::app()
                     .layer(Extension(AppState {
                         pool,
-                        shorter_url_domain: setted_config.app_config.as_ref().unwrap().shorter_url_domain.as_ref().unwrap().to_string(),
+                        shorter_url_domain: conf.app.url_domain.clone()
                     }));
 
     tracing::info!("Server starts...");
 
-    let port = setted_config.app_config.as_ref().unwrap().port.as_ref().unwrap();
+    let port: String = conf.app.port.clone();
 
     let mut addr = String::from("0.0.0.0:");
     addr.push_str(&port);

@@ -1,43 +1,49 @@
-use std::{fs::{File}, io::Read};
 
 
-use crate::model::conf::Config;
+use serde::Deserialize;
 
-#[inline]
-pub fn load_config() -> Config {
-    let file_path = "config.toml";
-    let mut file = match File::open(file_path) {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("{:?}", e);
-            panic!();
-        }
-    };
-
-    let mut str_val = String::new();
-    file.read_to_string(&mut str_val).expect("Error Reading file.");
-
-    let config: Config = toml::from_str(&str_val).unwrap();
-
-    config
+#[derive(Deserialize)]
+pub struct AppConfig {
+    pub port: String,
+    pub url_domain: String
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use sqlx::mysql::MySqlPoolOptions;
+#[derive(Deserialize)]
+pub struct PGConfig {
+    pub user: String,
+    pub password: String,
+    pub dbname: String,
+    pub port: String,
+    pub host: String,
+    pub max_size: String,
+}
 
-    #[test]
-    fn test_load_config() {
-        let setted_config = load_config();
-        println!("{:?}", setted_config);
-    }
-    
-    #[tokio::test]
-    async fn connect_to_sql() {
-        let _pool = MySqlPoolOptions::new()
-        .max_connections(5)
-        .connect("mysql://root:root@localhost/Test").await.unwrap();
+#[derive(Deserialize)]
+pub struct Config {
+    pub app: AppConfig,
+    pub pg: PGConfig,
+}
+
+impl Config {
+    /// 从环境变量中初始化配置
+    pub fn from_env() -> Result<Self, config::ConfigError> {
+        let mut cfg = config::Config::new();
+        cfg.merge(config::Environment::new())?;
+        cfg.try_into()
     }
 }
+
+#[tokio::test]
+async fn connect_to_sql() {
+    use dotenv::dotenv;
+    use sqlx::postgres::PgPoolOptions;
+    dotenv().ok();
+    let conf = Config::from_env().expect("初始化配置失败");
+    let pg_url = format!("postgres://{}:{}@{}/{}", conf.pg.user, conf.pg.password, conf.pg.host, conf.pg.dbname);
+    println!("{}", pg_url);
+    let pool = PgPoolOptions::new()
+    .max_connections(conf.pg.max_size.parse::<u32>().unwrap())
+    .connect(&pg_url).await;
+}
+
 
