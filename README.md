@@ -10,4 +10,4 @@ Also it's a practice just for primary learner.
 - [Finished] Import murmur3_32bit algrithm for hashcode impl. 
 - [Finished] Build up basic url-shorter service with Rust/axum and MySQL.
 - Using some feature to make the service more meaningful.
-- Put up a simple Vue3 page.
+- [Finished] Put up a simple Vue3 page.
